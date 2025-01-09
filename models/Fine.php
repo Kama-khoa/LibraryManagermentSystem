@@ -121,11 +121,11 @@ class Fine extends Model
     public function updateFineStatus($fineId, $data) {
         $sql = "UPDATE fine SET 
                 status = :status,
-                notes = :notes,
                 returned_date = :returned_date 
                 WHERE fine_id = :fine_id;
                 
                 UPDATE fine_payment SET 
+                notes = :notes,
                 payment_method = :payment_method
                 WHERE fine_id = :fine_id;";
         
@@ -135,10 +135,6 @@ class Fine extends Model
         $stmt->bindParam(':returned_date', $data['returned_date']);
         $stmt->bindParam(':payment_method', $data['payment_method']);
         $stmt->bindParam(':fine_id', $fineId);
-    
-        // if (isset($data['returned_to'])) {
-        //     $stmt->bindParam(':returned_to', $data['returned_to']);
-        // }
     
         $stmt->execute();
 }
