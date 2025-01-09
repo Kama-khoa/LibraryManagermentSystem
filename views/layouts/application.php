@@ -379,7 +379,7 @@
 									Thông tin tài khoản
 								</li>
 							</a>
-							<a href="index.php?model=member&action=fines&id=<?php echo $_SESSION['user_id'] ?>">
+							<a href="index.php?model=fine&action=fines&id=<?php echo $_SESSION['user_id'] ?>">
 								<li>
 									<i class="fa-solid fa-file"></i>
 									Kiểm tra phiếu phạt

@@ -35,12 +35,12 @@ if (!isset($_SESSION['user_id']) && !$is_public_route) {
     exit();
 }
 
-if (isset($_SESSION['role_id']) && $_SESSION['role_id'] == 3) {
-    if ($model !== 'default' && $model !== 'auth' && $model!== 'member') {
-        header('Location: index.php?model=default&action=index');
-        exit();
-    }
-}
+// if (isset($_SESSION['role_id']) && $_SESSION['role_id'] == 3) {
+//     if ($model !== 'default' && $model !== 'auth' && $model!== 'member') {
+//         header('Location: index.php?model=default&action=index');
+//         exit();
+//     }
+// }
 
 switch ($model) {
     case 'statistic':
@@ -104,10 +104,10 @@ switch ($action) {
         }
         $controller->admin_dashboard();
     case 'create':
-        if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] == 3) {
-            header('Location: index.php?model=default&action=index');
-            exit();
-        }
+        // if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] == 3) {
+        //     header('Location: index.php?model=default&action=index');
+        //     exit();
+        // }
         $controller->create();
         break;
     case 'member':
@@ -125,10 +125,10 @@ switch ($action) {
         $controller->edit($id);
         break;
     case 'delete':
-        if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] == 3) {
-            header('Location: index.php?model=default&action=index');
-            exit();
-        }
+        // if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] == 3) {
+        //     header('Location: index.php?model=default&action=index');
+        //     exit();
+        // }
         $controller->delete($id);
         break;
     case 'show':
@@ -167,11 +167,16 @@ switch ($action) {
     case 'delete_book':
         $controller->delete_book($id);
         break;
+    case 'fines':
+        $controller->fines($id);
+        break;
+    case 'pay':
+        $controller->pay();
+        break;
+    case 'member_create':
+        $controller->member_create();
+        break;
     case 'update_status':
-        if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] == 3) {
-            header('Location: index.php?model=default&action=index');
-            exit();
-        }
         $controller->update_status($id);
         break;
     case 'export':

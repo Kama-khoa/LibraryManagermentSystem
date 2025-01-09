@@ -120,13 +120,20 @@ class Fine extends Model
 
     public function updateFineStatus($fineId, $data) {
         $sql = "UPDATE fine SET 
-                status = :status, 
+                status = :status,
+                notes = :notes,
                 returned_date = :returned_date 
-                WHERE fine_id = :fine_id";
+                WHERE fine_id = :fine_id;
+                
+                UPDATE fine_payment SET 
+                payment_method = :payment_method
+                WHERE fine_id = :fine_id;";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':status', $data['status']);
+        $stmt->bindParam(':notes', $data['notes']);
         $stmt->bindParam(':returned_date', $data['returned_date']);
+        $stmt->bindParam(':payment_method', $data['payment_method']);
         $stmt->bindParam(':fine_id', $fineId);
     
         if (isset($data['returned_to'])) {

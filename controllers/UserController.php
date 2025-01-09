@@ -146,75 +146,75 @@ class UserController extends Controller
         // include('views/user/role_detail.php');
     }
     public function export()
-{
-    // Khởi tạo service
-    $excelService = new ExcelExportService();
+    {
+        // Khởi tạo service
+        $excelService = new ExcelExportService();
 
-    // Lấy danh sách users
-    $users = $this->user->read();
+        // Lấy danh sách users
+        $users = $this->user->read();
 
-    // Định nghĩa headers và key mapping
-    $headers = [
-        'user_id' => 'ID',
-        'username' => 'Tên đăng nhập',
-        'full_name' => 'Họ và tên',
-        'email' => 'Email',
-        'phone' => 'Số điện thoại',
-        'date_of_birth' => 'Ngày sinh',
-        'gender' => 'Giới tính',
-        'address' => 'Địa chỉ',
-        'member_type' => 'Loại thành viên',
-        'expiry_date' => 'Ngày hết hạn',
-        'max_books' => 'Số sách tối đa',
-        'status' => 'Trạng thái',
-        'role_name' => 'Vai trò',
-        'created_at' => 'Ngày tạo'
-    ];
+        // Định nghĩa headers và key mapping
+        $headers = [
+            'user_id' => 'ID',
+            'username' => 'Tên đăng nhập',
+            'full_name' => 'Họ và tên',
+            'email' => 'Email',
+            'phone' => 'Số điện thoại',
+            'date_of_birth' => 'Ngày sinh',
+            'gender' => 'Giới tính',
+            'address' => 'Địa chỉ',
+            'member_type' => 'Loại thành viên',
+            'expiry_date' => 'Ngày hết hạn',
+            'max_books' => 'Số sách tối đa',
+            'status' => 'Trạng thái',
+            'role_name' => 'Vai trò',
+            'created_at' => 'Ngày tạo'
+        ];
 
-    // Xử lý và sắp xếp lại data theo thứ tự của headers
-    $processedData = [];
-    foreach ($users as $user) {
-        $row = [];
-        foreach (array_keys($headers) as $key) {
-            $row[$key] = $user[$key] ?? '';
+        // Xử lý và sắp xếp lại data theo thứ tự của headers
+        $processedData = [];
+        foreach ($users as $user) {
+            $row = [];
+            foreach (array_keys($headers) as $key) {
+                $row[$key] = $user[$key] ?? '';
+            }
+            $processedData[] = $row;
         }
-        $processedData[] = $row;
-    }
 
-    // Cấu hình cho việc export
-    $config = [
-        'headers' => $headers,
-        'data' => $processedData,  // Sử dụng processed data đã sắp xếp
-        'filename' => 'danh_sach_nguoi_dung.xlsx',
-        'translations' => [
-            // Translation cho gender
-            'male' => 'Nam',
-            'female' => 'Nữ',
-            'other' => 'Khác',
-            // Translation cho status
-            'active' => 'Hoạt động',
-            'inactive' => 'Không hoạt động'
-        ],
-        'translateColumns' => ['gender', 'status'],
-        'headerStyle' => [
-            'font' => [
-                'bold' => true
+        // Cấu hình cho việc export
+        $config = [
+            'headers' => $headers,
+            'data' => $processedData,  // Sử dụng processed data đã sắp xếp
+            'filename' => 'danh_sach_nguoi_dung.xlsx',
+            'translations' => [
+                // Translation cho gender
+                'male' => 'Nam',
+                'female' => 'Nữ',
+                'other' => 'Khác',
+                // Translation cho status
+                'active' => 'Hoạt động',
+                'inactive' => 'Không hoạt động'
             ],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => [
-                    'rgb' => 'E2E8F0'
-                ]
-            ],
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
+            'translateColumns' => ['gender', 'status'],
+            'headerStyle' => [
+                'font' => [
+                    'bold' => true
+                ],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => [
+                        'rgb' => 'E2E8F0'
+                    ]
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
+                    ]
                 ]
             ]
-        ]
-    ];
+        ];
 
-    // Thực hiện export
-    $excelService->exportWithConfig($config);
-}
+        // Thực hiện export
+        $excelService->exportWithConfig($config);
+    }
 }

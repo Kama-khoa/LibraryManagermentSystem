@@ -33,6 +33,7 @@ VALUES
 (1, 7, NOW()), -- manage_reservations
 (1, 8, NOW()), -- manage_bookConditions
 (1, 9, NOW()),
+(1, 10, NOW()),
 -- Librarian gets all management permissions except user management
 (2, 2, NOW()), -- manage_authors
 (2, 3, NOW()), -- manage_books
