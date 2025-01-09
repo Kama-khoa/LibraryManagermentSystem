@@ -46,6 +46,9 @@
                     <a href="index.php?model=role&action=create" class="btn btn-primary ml-3">
                         <i class="fas fa-plus"></i>
                     </a>
+                    <a href="index.php?model=role&action=export" class="btn btn-primary ml-3">
+                        <i class="fa-solid fa-file-excel"></i>
+                    </a>
                 </div>
             </div>
         </div>

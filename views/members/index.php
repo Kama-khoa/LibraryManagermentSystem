@@ -39,13 +39,13 @@
     <div class="card shadow mb-4 ">
         <div class="card-header py-2">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Quản lý tài khoản người dùng</h5>
+                <h5 class="card-title mb-0">Quản lý độc giả</h5>
                 <div class="d-flex align-items-center">
                     <div class="me-3">
                         <input type="search" id="searchInput" class="form-control" placeholder="Tìm kiếm...">
                     </div>
-                    <a href="index.php?model=user&action=create" class="btn btn-primary ml-3">
-                        <i class="fas fa-plus"></i>
+                    <a href="index.php?model=user&action=export" class="btn btn-primary ml-3">
+                        <i class="fa-solid fa-file-excel"></i>
                     </a>
                 </div>
             </div>

@@ -1,7 +1,8 @@
 <?php
 include_once 'models/Role.php';
 include_once 'models/Permission.php';
-
+include_once 'services/ExcelExportService.php';
+use App\Services\ExcelExportService;
 class RoleController extends Controller
 {
     private $role;
@@ -135,5 +136,60 @@ class RoleController extends Controller
 
         header("Location: index.php?model=role&action=index");
         exit();
+    }
+    public function export() 
+    {
+        $excelService = new ExcelExportService();
+        $roles = $this->role->read();
+        
+       
+        $headers = [
+            'role_id' => 'ID',
+            'name' => 'Tên vai trò',
+            'description' => 'Mô tả',
+            'created_at' => 'Ngày tạo',
+            'updated_at' => 'Ngày cập nhật'
+        ];
+
+        $processedData = [];
+        foreach ($roles as $role) {
+            $row = [];
+            foreach (array_keys($headers) as $key) {
+                $row[$key] = $role[$key] ?? '';
+            }
+
+            $this->role->role_id = $role['role_id'];
+            $permissions = $this->role->getPermissions();
+            $permissionNames = array_column($permissions, 'name');
+            $row['permissions'] = implode(', ', $permissionNames);
+            
+            $processedData[] = $row;
+        }
+
+        $headers['permissions'] = 'Quyền hạn';
+
+        $config = [
+            'headers' => $headers,
+            'data' => $processedData,
+            'filename' => 'danh_sach_vai_tro.xlsx',
+            'headerStyle' => [
+                'font' => [
+                    'bold' => true
+                ],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => [
+                        'rgb' => 'E2E8F0'
+                    ]
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
+                    ]
+                ]
+            ]
+        ];
+        
+        $excelService->exportWithConfig($config);
     }
 }
