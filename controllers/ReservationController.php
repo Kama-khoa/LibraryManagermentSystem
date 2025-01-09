@@ -185,7 +185,7 @@ class ReservationController extends Controller
             try {
                 // Save form data to session before processing
                 $_SESSION['form_data'] = $_POST;
-
+                
                 if(isset($_POST['notes'])){
                     $bookIds = $_POST['book_id'];
                     $userId = $_SESSION['user_id'];

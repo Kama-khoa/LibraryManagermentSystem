@@ -37,10 +37,10 @@ try {
     $updateDataFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\seeders\phuocdata.sql';
     $updateFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\migrations\update.sql';
     $accountFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\seeders\adminAccount.sql';
-    // $setup->runSQLFromFile($schemaFile);
-    $setup->runSQLFromFile($updateFile);
-    // $setup->runSQLFromFile($dataFile);
-    // $setup->runSQLFromFile($updateDataFile);
+    $setup->runSQLFromFile($schemaFile);
+    // $setup->runSQLFromFile($updateFile);
+    $setup->runSQLFromFile($dataFile);
+    $setup->runSQLFromFile($updateDataFile);
     // $setup->runSQLFromFile($accountFile);
   
 } catch(Exception $e) {

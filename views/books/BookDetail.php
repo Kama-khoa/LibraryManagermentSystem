@@ -24,7 +24,7 @@
                             <input type="hidden" name="book_id" value="<?php echo $book_detail['book_id']; ?>">
                             <input type="hidden" name="quantity" value="1"> 
                             <button type="submit" class="btn btn-primary">
-                            <i class="fa-solid fa-basket-shopping"></i> Thêm vào giỏ hàng
+                                <i class="fa-solid fa-basket-shopping"></i> Thêm vào giỏ sách
                             </button>
                         </form>
                     </ul>

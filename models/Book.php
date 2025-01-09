@@ -326,7 +326,7 @@ class Book extends Model
                         book_author ba ON b.book_id = ba.book_id
                     LEFT JOIN 
                         author a ON ba.author_id = a.author_id
-                    WHERE bc.category_id = ".$where." 
+                    WHERE ".$where." 
                     ORDER BY ".$orderBy." asc LIMIT ".$start.",".$last;
 		}
 		$stmt = $this->conn->prepare($sql);

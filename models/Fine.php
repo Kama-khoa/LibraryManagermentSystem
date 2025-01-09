@@ -136,9 +136,9 @@ class Fine extends Model
         $stmt->bindParam(':payment_method', $data['payment_method']);
         $stmt->bindParam(':fine_id', $fineId);
     
-        if (isset($data['returned_to'])) {
-            $stmt->bindParam(':returned_to', $data['returned_to']);
-        }
+        // if (isset($data['returned_to'])) {
+        //     $stmt->bindParam(':returned_to', $data['returned_to']);
+        // }
     
         $stmt->execute();
 }

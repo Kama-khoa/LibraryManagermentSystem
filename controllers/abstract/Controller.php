@@ -72,5 +72,6 @@ class Controller {
 
     }
     public function export(){}
+    public function search(){}
 }
 ?>
