@@ -132,42 +132,7 @@
             </div>
         </div>
 
-        <!-- Tiền phạt gần đây -->
-        <div class="col-xl-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Tiền phạt gần đây</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Thành viên</th>
-                                    <th>Sách</th>
-                                    <th>Số tiền</th>
-                                    <th>Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($recentFines as $fine): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($fine['member_name']) ?></td>
-                                    <td><?= htmlspecialchars($fine['book_title']) ?></td>
-                                    <td><?= number_format($fine['amount']) ?> VNĐ</td>
-                                    <td>
-                                        <span class="badge <?= $fine['status'] == 'paid' ? 'badge-success' : 'badge-warning' ?>">
-                                            <?= $fine['status'] == 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán' ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+       
     </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>

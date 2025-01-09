@@ -116,38 +116,7 @@
 
     <!-- Tables Row -->
     <div class="row">
-        <!-- Recent Loans -->
-        <div class="col-xl-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Mượn sách gần đây</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Thành viên</th>
-                                    <th>Sách</th>
-                                    <th>Ngày mượn</th>
-                                    <th>Hạn trả</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($recentLoans as $loan): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($loan['member_name']) ?></td>
-                                    <td><?= htmlspecialchars($loan['book_title']) ?></td>
-                                    <td><?= date('d/m/Y', strtotime($loan['borrow_date'])) ?></td>
-                                    <td><?= date('d/m/Y', strtotime($loan['due_date'])) ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
 
         <!-- Popular Books -->
         <div class="col-xl-6">
