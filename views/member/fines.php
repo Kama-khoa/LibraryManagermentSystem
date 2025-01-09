@@ -179,7 +179,7 @@
                                 </td>
                                 <td class="text-center align-middle"  style="height: 50px">
                                     <div class="d-flex justify-content-center">
-                                        <a href="index.php?model=member&action=show&id=<?= $fine['fine_id'] ?>" class="btn btn-sm btn-outline-primary me-3" title="Chi tiết">
+                                        <a href="index.php?model=fine&action=show&id=<?= $fine['fine_id'] ?>" class="btn btn-sm btn-outline-primary me-3" title="Chi tiết">
                                             <i class="fas fa-money-bill"></i>
                                         </a>
                                     </div>
@@ -238,7 +238,7 @@
         
         var fine_id = $(this).find('a').attr('href').split('id=')[1];
         
-        window.location.href = 'index.php?model=member&action=show&id=' + fine_id;
+        window.location.href = 'index.php?model=fine&action=show&id=' + fine_id;
     });
 
     $('#searchInput').on('keyup', function() {

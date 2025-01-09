@@ -6,7 +6,8 @@ foreach ($data_tmp as $book) { ?>
 				<img src='uploads/covers/<?php echo $book['cover_image'] ?>'>
 			</div>
 			<div class='product-info'>
-				<h3><b><?php echo $book['title']; ?></b></h3>
+				<h3 style="color: white;"><b><?php echo $book['title'] ?></b></h3>
+				<h5 style="color: white;">Tác giả: <?php echo $book['authors'] ?></h5>
 				<div class='buy'>
 					<a class='btn btn-primary btn-md cart-container <?php
 					if(isset($_SESSION['cart'])){

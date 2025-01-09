@@ -1,3 +1,3 @@
 INSERT INTO User (user_id,role_id, username, password, email, full_name, date_of_birth, gender, phone, address, member_type, expiry_date, max_books, status, note, created_at, updated_at) VALUES
-(11,1, 'admin', '$2y$10$Emixoh4R9nasmR0x5AJV.ufbbYmoE87bl2AIhZKUGLG6YBvHNBxhG', 'admin@gmail.com', N'Hạ Nguyễn Mạnh Hùng', '2004-01-20', 'male', '0901234568', N'123 Lê Lợi, Hà Nội', 'Admin', '2030-01-01', 999, 'active', NULL, NOW(), NOW()),
-(12,3, 'user', '$2y$10$npWuRVvQNbgR1jikq76cwuR7fFndNPD2VtHEPL1SCrNM69TeKMlkm', 'user@gmail.com', N'Đỗ Thúy Vi', '2004-03-28', 'female', '0912345690', N'456 Nguyễn Huệ, TP.HCM', 'Regular', '2030-01-01', 10, 'active', NULL, NOW(), NOW());
+(16,1, 'admin1', '$2y$10$Emixoh4R9nasmR0x5AJV.ufbbYmoE87bl2AIhZKUGLG6YBvHNBxhG', 'admin@gmail.com', N'Hạ Nguyễn Mạnh Hùng', '2004-01-20', 'male', '0901234568', N'123 Lê Lợi, Hà Nội', 'Admin', '2030-01-01', 999, 'active', NULL, NOW(), NOW()),
+(17,3, 'user', '$2y$10$npWuRVvQNbgR1jikq76cwuR7fFndNPD2VtHEPL1SCrNM69TeKMlkm', 'user@gmail.com', N'Đỗ Thúy Vi', '2004-03-28', 'female', '0912345690', N'456 Nguyễn Huệ, TP.HCM', 'Regular', '2030-01-01', 10, 'active', NULL, NOW(), NOW());

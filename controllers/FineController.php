@@ -154,4 +154,94 @@ class FineController extends Controller
             }
         }
     }
+
+    public function fines($id) {
+        $fines = $this->fine->getFinesByMemberId($id);
+
+        $content = 'views/member/fines.php';
+        include('views/layouts/application.php');
+    }
+    public function show($id) {
+        $fine = $this->fine->readById($id);
+
+        $content = 'views/member/show_fine.php';
+        include('views/layouts/application.php');
+    }
+
+    public function pay() {
+        $fineId = isset($_POST['fine_id']) ? htmlspecialchars($_POST['fine_id']) : null;
+        // Kiểm tra xem người dùng đã gửi form thanh toán chưa
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_fines'])) {
+            $selectedFines = $_POST['selected_fines']; // Các ID của hóa đơn được chọn
+            
+            
+            if (isset($_FILES['payment_image']) && $_FILES['payment_image']['error'] === UPLOAD_ERR_OK) {
+                $file = $_FILES['payment_image'];
+                $fileName = $file['name'];
+                $fileTmpName = $file['tmp_name'];
+                $fileSize = $file['size'];
+                $fileType = $file['type'];
+    
+                // Kiểm tra định dạng và kích thước file
+                $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                $maxSize = 2 * 1024 * 1024; // 2MB
+    
+                if (!in_array($fileType, $allowedTypes)) {
+                    $_SESSION['alert'] = 'Chỉ chấp nhận file ảnh định dạng JPG, JPEG hoặc PNG!';
+                    header('Location: index.php?model=fine&action=pay');
+                    exit;
+                }
+    
+                if ($fileSize > $maxSize) {
+                    $_SESSION['alert'] = 'Kích thước file không được vượt quá 2MB!';
+                    header('Location: index.php?model=fine&action=pay');
+                    exit;
+                }
+    
+                // Tạo tên file mới và đường dẫn upload
+                $fileExtension = pathinfo($fileName, PATHINFO_EXTENSION);
+                $newFileName = uniqid() . '.' . $fileExtension;
+                $uploadDir = 'uploads/payments/';
+                
+                if (!file_exists($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                
+                $uploadFilePath = $uploadDir . $newFileName;
+    
+                if (move_uploaded_file($fileTmpName, $uploadFilePath)) {
+                    // Lặp qua từng hóa đơn được chọn và cập nhật trạng thái
+                    foreach ($selectedFines as $fineId) {
+                        $this->fine->updateFineStatus($fineId, [
+                            'status' => 'pending', // Cập nhật trạng thái thành 'chờ thanh toán'
+                            'payment_method' => 'Chuyển khoản', // Cập nhật phương thức thành 'chuyển khoản'
+                            'notes' => $newFileName, // Lưu đường dẫn ảnh vào notes
+                            'returned_date' => date('Y-m-d') // Lưu ngày hiện tại vào returned_date
+                        ]);
+                    }
+    
+                    // Chuyển hướng người dùng sau khi thanh toán thành công
+                    $_SESSION['message'] = 'Thanh toán đang chờ xử lý!';
+                    $_SESSION['message_type'] = 'success';
+                    header('Location: index.php?model=fine&action=fines&id=' . $_SESSION['user_id']);
+                    exit;
+                } else {
+                    $_SESSION['alert'] = 'Không thể tải ảnh lên. Vui lòng thử lại!';
+                    header('Location: index.php?model=fine&action=pay');
+                    exit;
+                }
+            } else {
+                $_SESSION['alert'] = 'Vui lòng tải ảnh xác nhận thanh toán!';
+                header('Location: index.php?model=fine&action=pay');
+                exit;
+            }
+        }
+    
+        // Lấy danh sách phiếu phạt và thông tin người dùng để hiển thị
+        $fines = $this->fine->getFinesByMemberId($_SESSION['user_id']);
+        $user = $this->user->readById($_SESSION['user_id']);
+        
+        $content = 'views/member/pay.php';
+        include('views/layouts/application.php');
+    }
 }

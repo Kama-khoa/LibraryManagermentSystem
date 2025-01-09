@@ -227,7 +227,7 @@ class BookController extends Controller
                 foreach ($allCtgrs as $category) {
                     switch ($type) {
                         case $category['category_id']:
-                            $books = $this->book->getBook('title',0,8,$category['category_id']);
+                            $books = $this->book->getBook('title',0,8,"bc.category_id =".$category['category_id']);
                             $title = "<span id='contentTitle' data-type='".$category['name']."'>Thể loại: ".$category['name']."</span>";
                             break;
                     }
@@ -241,28 +241,27 @@ class BookController extends Controller
 
     function loadmore(){
 		$allCtgrs = $this->category->read();
-		$md = new Book();
 		if(isset($_GET['q'])){$q = $_GET['q'];}
 		if(isset($_GET['start'])){$st = $_GET['start'];}
 		if(isset($_GET['type'])){$type = $_GET['type'];}
 		switch ($type) {
 			case 'bestselling':
-                $data_tmp = $md->getTopBook($st,8);
+                $data_tmp = $this->book->getTopBook($st,8);
                 break;
 			case 'newest':
-                $data_tmp = $md->getBook('created_at',$st,8);
+                $data_tmp = $this->book->getBook('created_at',$st,8);
                 break;
 			case 'all':
-                $data_tmp = $md->getBook('title',$st,8);
+                $data_tmp = $this->book->getBook('title',$st,8);
                 break;
 			case 'search':
-                $data_tmp = $md->getBook('title',$st,8,"tensp like '%".$q."%'");
+                $data_tmp = $this->book->getBook('title',$st,8,"b.title like '%".$q."%'");
                 break;
 			default:
 			foreach ($allCtgrs as $category) {
                 switch ($type) {
 					case $category['category_id']:
-                        $data_tmp = $md->getBook('title',$st,8,$category['category_id']);
+                        $data_tmp = $this->book->getBook('title',$st,8,"bc.category_id =".$category['category_id']);
                         break;
 				}
 			}
@@ -270,9 +269,15 @@ class BookController extends Controller
         if(empty($data_tmp)){
             return 0;
         }
-        // var_dump($data_tmp);
-        // exit();
 		require 'views/books/loadBooks.php';
+	}
+
+    function search(){
+		$q = "";
+		if(isset($_GET['q'])){$q = $_GET['q'];}
+		$books = $this->book->getBook('title',0,8,"b.title like '%".$q."%'");
+		$title = "<span id='contentTitle' data-type='search'>Kết quả tìm kiếm cho: ".$q."</span>";
+		require  'views/books/Books.php';
 	}
 }
 ?>

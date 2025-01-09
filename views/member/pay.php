@@ -137,7 +137,7 @@
                     </div>
                     
                     <!-- Danh sách phiếu phạt -->
-                    <form action="index.php?model=member&action=pay" method="POST" enctype="multipart/form-data">
+                    <form action="index.php?model=fine&action=pay" method="POST" enctype="multipart/form-data">
                     <div class=" border">
                         <h4>Chi tiết phiếu phạt</h4>
                         <table class="table table-bordered">

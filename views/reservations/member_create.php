@@ -103,15 +103,14 @@
                 </tr>
             </thead>
             <tbody>
-                <?php foreach($booksWithExpectedDate as $book): 
-                    if($book['expected_date'] != null):?>
+                <?php foreach($booksWithExpectedDate as $book): ?>
                 <tr>
                     <td class="book-select"><?= $book['book_id'] ?></td>
                     <td><?= $book['title'] ?></td>
                     <td><?= $book['authors'] ?></td>
                     <td><button class="btn-add add-btn" data-id="<?= $book['book_id'] ?>" data-title="<?= $book['title'] ?>" data-author="<?= $book['authors'] ?>" data-date="<?= $book['expected_date'] ?>">Thêm</button></td>
                 </tr>
-                <?php endif; endforeach; ?>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>
@@ -132,6 +131,9 @@
                 </tr>
             </thead>
             <tbody>
+                <label for="notes" class="form-label">Ghi Chú:</label>
+                <textarea name="notes" id="notes" class="form-control" required
+                    placeholder="Vui lòng điền đầy đủ: Họ và Tên, Lớp, Mã SV (Bắt buộc)"></textarea>
             </tbody>
         </table>
     </div>
@@ -214,7 +216,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Gỡ sách khỏi phiếu hẹn
             row.querySelector(".remove-btn").addEventListener("click", function () {
                 // Remove book_id input
-                const bookInput = hiddenInputs.querySelector(`input[name="book_id[]"][value="${id}"]`);
+                const bookInput = hiddenInputs.querySelector(input[name="book_id[]"][value="${id}"]);
                 if (bookInput) bookInput.remove();
                 row.remove();
                 
@@ -262,4 +264,4 @@ document.addEventListener("DOMContentLoaded", function () {
         return true;
     });
 });
-</script>
+</script> 

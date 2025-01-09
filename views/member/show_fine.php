@@ -131,7 +131,7 @@
                         unset($_SESSION['message_type']);
                         ?>
                     <?php endif; ?>
-                    <form action="index.php?model=member&action=pay" method="POST">
+                    <form action="index.php?model=fine&action=pay" method="POST">
                         <input type="hidden" name="fine_id" value="<?= htmlspecialchars($fine['fine_id']); ?>">
                         <div class="row">
                             <div class="col-md-6">
@@ -192,7 +192,7 @@
                         </div>
 
                         <div class="card-footer" style="margin-top: 15px; width: 100%; ">
-                            <a href="index.php?model=member&action=fines&id=<?php echo $_SESSION['user_id'] ?>" class="btn btn-secondary">
+                            <a href="index.php?model=fine&action=fines&id=<?php echo $_SESSION['user_id'] ?>" class="btn btn-secondary">
                                 <i class="fa-solid fa-arrow-left"></i> Quay lại
                             </a>
                             <?php if($fine['status'] == 'unpaid'): ?>

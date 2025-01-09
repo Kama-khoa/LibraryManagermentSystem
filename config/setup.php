@@ -32,16 +32,16 @@ class Setup {
 
 try {
     $setup = new Setup();
-    $schemaFile = 'C:\XAMPP\htdocs\LibraryManagementSystem\database\migrations\schema.sql';
-    $dataFile = 'C:\XAMPP\htdocs\LibraryManagementSystem\database\seeders\data.sql';
-    $updateDataFile = 'C:\XAMPP\htdocs\LibraryManagementSystem\database\seeders\phuocdata.sql';
-    $updateFile = 'C:\XAMPP\htdocs\LibraryManagementSystem\database\migrations\update.sql';
-    $accountFile = 'C:\XAMPP\htdocs\LibraryManagementSystem\database\migrations\adminAccount.sql';
+    $schemaFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\migrations\schema.sql';
+    $dataFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\seeders\data.sql';
+    $updateDataFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\seeders\phuocdata.sql';
+    $updateFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\migrations\update.sql';
+    $accountFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\seeders\adminAccount.sql';
     $setup->runSQLFromFile($schemaFile);
-    $setup->runSQLFromFile($updateFile);
+    // $setup->runSQLFromFile($updateFile);
     $setup->runSQLFromFile($dataFile);
     $setup->runSQLFromFile($updateDataFile);
-    $setup->runSQLFromFile($accountFile);
+    // $setup->runSQLFromFile($accountFile);
   
 } catch(Exception $e) {
     echo "Lỗi khởi tạo: " . $e->getMessage() . "\n";

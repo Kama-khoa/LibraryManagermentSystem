@@ -379,7 +379,7 @@
 									Thông tin tài khoản
 								</li>
 							</a>
-							<a href="index.php?model=member&action=fines&id=<?php echo $_SESSION['user_id'] ?>">
+							<a href="index.php?model=fine&action=fines&id=<?php echo $_SESSION['user_id'] ?>">
 								<li>
 									<i class="fa-solid fa-file"></i>
 									Kiểm tra phiếu phạt
@@ -595,6 +595,21 @@
 			userSetting.toggle();
 		});
 	});
+	function search(){
+	var q = $('#srch-val').val();
+	$('#bodyContainer').empty();
+	$.ajax({
+		url : "index.php?model=book&action=search",
+		type : "get",
+		dataType:"text",
+		data : {
+		q
+		},
+		success : function (result){
+		$('#bodyContainer').html(result);
+		}
+	});
+	}
 </script>
 
 </html>
