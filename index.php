@@ -167,15 +167,9 @@ switch ($action) {
         break;
     case 'export':
         $controller->export();
-
-    case 'member_create':
-        $controller->member_create();
-        break;
     case 'cart_history':
         $controller-> history_borrow();
         break;   
-    
-        break;
     case 'search':
         $controller->search();
         break;

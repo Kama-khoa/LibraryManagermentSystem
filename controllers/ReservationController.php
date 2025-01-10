@@ -13,6 +13,7 @@ class ReservationController extends Controller
     private $book;
     private $user;
     private $loan;
+    private $cart;
 
     public function __construct()
     {
@@ -21,6 +22,7 @@ class ReservationController extends Controller
         $this->book = new Book();
         $this->user = new User();
         $this->loan = new Loan();
+        $this->cart=new Cart();
     }
 
     public function index()
@@ -210,8 +212,32 @@ class ReservationController extends Controller
             try {
                 // Save form data to session before processing
                 $_SESSION['form_data'] = $_POST;
-                
+
+                if (!isset($_SESSION['books_reservation']) || empty($_SESSION['books_reservation'])) {
+                    throw new Exception('Danh sách sách trong phiếu hẹn rỗng.');
+                }
+    
+                foreach ($_SESSION['books_reservation'] as &$book) {
+                    $bookDetails = $this->book->readById($book['book_id']);
+    
+                    if ($bookDetails) {
+                        // Tính toán ngày dự kiến
+                        $expectedDate = date('Y-m-d', strtotime('+10 days'));
+                        if (!empty($bookDetails['expected_date'])) {
+                            $expectedDate = $bookDetails['expected_date'];
+                        }
+    
+                        // Gán ngày dự kiến vào session
+                        $book['expected_date'] = $expectedDate;
+                    } else {
+                        throw new Exception("Không tìm thấy thông tin sách ID: {$book['book_id']}");
+                    }
+                }
+                unset($book); // Clear reference
+    
                 if(isset($_POST['notes'])){
+                    // var_dump($_POST);
+                    // exit();
                     $bookIds = $_POST['book_id'];
                     $userId = $_SESSION['user_id'];
                     $notes = $_POST['notes'];
@@ -234,9 +260,16 @@ class ReservationController extends Controller
                     if (!$maxExpectedDate) {
                         throw new Exception('Không thể xác định ngày dự kiến.');
                     }
-        
-                    $expiryDate = date('Y-m-d', strtotime($maxExpectedDate . ' +3 days'));
-        
+
+                    if($maxExpectedDate != null)
+                    {
+                        $expiryDate = date('Y-m-d', strtotime($maxExpectedDate . ' +3 days'));
+                    }
+                    else {
+                        $expiryDate = date('Y-m-d', strtotime($expectedDate . ' +3 days'));
+                    }
+    
+                    
                     // Create main reservation
                     $this->reservation->user_id = strip_tags(trim($userId));
                     $this->reservation->reservation_date = date('Y-m-d'); // Current date
@@ -251,21 +284,29 @@ class ReservationController extends Controller
         
                     // Get ID of the newly created reservation
                     $reservationId = $this->reservation->getLastInsertId();
-        
+                    
+                    
                     // Loop through each book to create reservation_detail
                     foreach ($bookIds as $bookId) {
                         $this->reservationDetail->reservation_id = $reservationId;
                         $this->reservationDetail->book_id = strip_tags(trim($bookId));
-        
                         // Save each reservation_detail
                         if (!$this->reservationDetail->create()) {
                             throw new Exception("Không thể tạo chi tiết phiếu đặt cho sách ID: $bookId");
                         }
                     }
+
+                    foreach ($bookIds as $bookId) {
+                        if (!$this->cart->removeCartItem($userId, $bookId )) {
+                            throw new Exception("Không thể xóa sách: $bookId");
+                        }
+
+                    }
         
                     $_SESSION['message'] = 'Tạo phiếu đặt sách thành công!';
                     $_SESSION['message_type'] = 'success';
-                    unset($_SESSION['form_data']); // Clear form data after success
+                    unset($_SESSION['form_data']); 
+                    unset($_SESSION['books_reservation']);
                     header("Location: index.php?model=default&action=index");
                     exit();
                 }
@@ -277,7 +318,6 @@ class ReservationController extends Controller
     
         $user = $this->user->readById($_SESSION['user_id']);
         $booksWithExpectedDate = $this->book->readWithExpectedDate();
-    
         $content = 'views/reservations/member_create.php';
         include('views/layouts/application.php');
     }
