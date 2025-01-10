@@ -72,6 +72,7 @@ class Controller {
 
     }
     public function export(){}
+    public function show_insufficient_modal(){}
     public function search(){}
 }
 ?>

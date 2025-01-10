@@ -44,10 +44,14 @@
                     <input type="search" id="searchInput" class="form-control" placeholder="Tìm kiếm...">
                 </div>
                 <div>
-                <?php if ($userData['role_id'] == 3): ?>
-                    <a href="index.php?model=loan&action=create" class="btn btn-primary">
+                <?php if ($userData['role_id'] != 3): ?>
+                    <!-- <a href="index.php?model=loan&action=create" class="btn btn-primary">
                         <i class="fa-solid fa-plus"></i> Thêm Phiếu
+                    </a> -->
+                    <a href="index.php?model=loan&action=export" class="btn btn-primary ml-3">
+                        <i class="fa-solid fa-file-excel"></i>
                     </a>
+
                 <?php endif; ?>
                 </div>
             </div>
@@ -135,7 +139,7 @@
         
         var authorId = $(this).find('td:first').text().trim();
         
-        window.location.href = 'index.php?model=author&action=edit&id=' + authorId;
+        window.location.href = 'index.php?model=loan&action=show&id=' + authorId;
     });
 
     $('#searchInput').on('keyup', function() {

@@ -35,6 +35,7 @@ if (!isset($_SESSION['user_id']) && !$is_public_route) {
     exit();
 }
 
+
 switch ($model) {
     case 'statistic':
         $controller = new StatisticsController();
@@ -97,6 +98,10 @@ switch ($action) {
         }
         $controller->admin_dashboard();
     case 'create':
+        // if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] == 3) {
+        //     header('Location: index.php?model=default&action=index');
+        //     exit();
+        // }
         $controller->create();
         break;
     case 'member':
@@ -162,6 +167,14 @@ switch ($action) {
         break;
     case 'export':
         $controller->export();
+
+    case 'member_create':
+        $controller->member_create();
+        break;
+    case 'cart_history':
+        $controller-> history_borrow();
+        break;   
+    
         break;
     case 'search':
         $controller->search();
