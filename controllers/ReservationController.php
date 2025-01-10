@@ -12,7 +12,7 @@ class ReservationController extends Controller
     private $reservationDetail;
     private $book;
     private $user;
-    private $cart;
+    private $loan;
 
     public function __construct()
     {
@@ -20,7 +20,7 @@ class ReservationController extends Controller
         $this->reservationDetail = new Reservation_Detail();
         $this->book = new Book();
         $this->user = new User();
-        $this->cart = new Cart();
+        $this->loan = new Loan();
     }
 
     public function index()
@@ -115,7 +115,30 @@ class ReservationController extends Controller
                 if (!$this->reservation->updateStatus( $id,$status)) {
                     throw new Exception('Không thể cập nhật trạng thái phiếu đặt.');
                 }
-    
+                
+                // Nếu trạng thái là 'fulfilled', tạo phiếu mượn
+                if ($status === 'fulfilled') {
+                    $this->loan->issued_by = $reservation['user_id'];
+                    $this->loan->issued_date = date('Y-m-d');
+                    $this->loan->due_date = date('Y-m-d', strtotime('+7 days'));
+                    $this->loan->status = 'issued';
+                    $this->loan->notes = 'Created from reservation #' . $id;
+                    $this->loan->books = [];
+
+                    foreach($reservationDetails as $detail){
+                        $this->loan->books[] = [
+                            'book_id' => $detail['book_id'],
+                            'quantity' => $detail['quantity'],
+                            'status' => 'issued',
+                            'notes' => 'Created from reservation #' . $id
+                        ];
+                    }
+                    
+                    if (!$this->loan->createLoanFromReservation($this->loan->books)) {
+                        throw new Exception('Không thể tạo phiếu mượn.');
+                    }
+                }
+
                 // Đặt thông báo thành công
                 $_SESSION['message'] = 'Cập nhật trạng thái thành công.';
                 $_SESSION['message_type'] = 'success';
@@ -187,32 +210,8 @@ class ReservationController extends Controller
             try {
                 // Save form data to session before processing
                 $_SESSION['form_data'] = $_POST;
-
-                if (!isset($_SESSION['books_reservation']) || empty($_SESSION['books_reservation'])) {
-                    throw new Exception('Danh sách sách trong phiếu hẹn rỗng.');
-                }
-    
-                foreach ($_SESSION['books_reservation'] as &$book) {
-                    $bookDetails = $this->book->readById($book['book_id']);
-    
-                    if ($bookDetails) {
-                        // Tính toán ngày dự kiến
-                        $expectedDate = date('Y-m-d', strtotime('+10 days'));
-                        if (!empty($bookDetails['expected_date'])) {
-                            $expectedDate = $bookDetails['expected_date'];
-                        }
-    
-                        // Gán ngày dự kiến vào session
-                        $book['expected_date'] = $expectedDate;
-                    } else {
-                        throw new Exception("Không tìm thấy thông tin sách ID: {$book['book_id']}");
-                    }
-                }
-                unset($book); // Clear reference
-    
+                
                 if(isset($_POST['notes'])){
-                    // var_dump($_POST);
-                    // exit();
                     $bookIds = $_POST['book_id'];
                     $userId = $_SESSION['user_id'];
                     $notes = $_POST['notes'];
@@ -235,16 +234,9 @@ class ReservationController extends Controller
                     if (!$maxExpectedDate) {
                         throw new Exception('Không thể xác định ngày dự kiến.');
                     }
-
-                    if($maxExpectedDate != null)
-                    {
-                        $expiryDate = date('Y-m-d', strtotime($maxExpectedDate . ' +3 days'));
-                    }
-                    else {
-                        $expiryDate = date('Y-m-d', strtotime($expectedDate . ' +3 days'));
-                    }
-    
-                    
+        
+                    $expiryDate = date('Y-m-d', strtotime($maxExpectedDate . ' +3 days'));
+        
                     // Create main reservation
                     $this->reservation->user_id = strip_tags(trim($userId));
                     $this->reservation->reservation_date = date('Y-m-d'); // Current date
@@ -259,29 +251,21 @@ class ReservationController extends Controller
         
                     // Get ID of the newly created reservation
                     $reservationId = $this->reservation->getLastInsertId();
-                    
-                    
+        
                     // Loop through each book to create reservation_detail
                     foreach ($bookIds as $bookId) {
                         $this->reservationDetail->reservation_id = $reservationId;
                         $this->reservationDetail->book_id = strip_tags(trim($bookId));
+        
                         // Save each reservation_detail
                         if (!$this->reservationDetail->create()) {
                             throw new Exception("Không thể tạo chi tiết phiếu đặt cho sách ID: $bookId");
                         }
                     }
-
-                    foreach ($bookIds as $bookId) {
-                        if (!$this->cart->removeCartItem($userId, $bookId )) {
-                            throw new Exception("Không thể xóa sách: $bookId");
-                        }
-
-                    }
         
                     $_SESSION['message'] = 'Tạo phiếu đặt sách thành công!';
                     $_SESSION['message_type'] = 'success';
-                    unset($_SESSION['form_data']); 
-                    unset($_SESSION['books_reservation']);
+                    unset($_SESSION['form_data']); // Clear form data after success
                     header("Location: index.php?model=default&action=index");
                     exit();
                 }
@@ -293,9 +277,93 @@ class ReservationController extends Controller
     
         $user = $this->user->readById($_SESSION['user_id']);
         $booksWithExpectedDate = $this->book->readWithExpectedDate();
+    
         $content = 'views/reservations/member_create.php';
         include('views/layouts/application.php');
     }
+    public function export()
+    {
+        // Khởi tạo service
+        $excelService = new ExcelExportService();
 
+        // Lấy danh sách reservations
+        $reservations = $this->reservation->read();
+
+        // Định nghĩa headers và key mapping
+        $headers = [
+            'reservation_id' => 'Mã phiếu',
+            'full_name' => 'Họ và tên người mượn',
+            'reservation_date' => 'Ngày đặt hẹn',
+            'expiry_date' => 'Ngày hết hạn',
+            'fulfilled_date' => 'Ngày hoàn thành',
+            'status' => 'Trạng thái',
+            'notes' => 'Ghi chú',
+            'titles' => 'Tựa sách',
+        ];
+
+        // Dịch trạng thái
+        $translations = [
+            'fulfilled' => 'Hoàn thành',
+            'pending' => 'Đang chờ',
+            'cancelled' => 'Đã hủy',
+            'expired' => 'Hết hạn',
+        ];
+
+        // Xử lý và sắp xếp lại data theo thứ tự của headers
+        $processedData = [];
+        foreach ($reservations as $reservation) {
+            $row = [];
+            foreach (array_keys($headers) as $key) {
+                if ($key == 'status') {
+                    $row[$key] = $translations[$reservation[$key]] ?? $reservation[$key];
+                } else {
+                    $row[$key] = $reservation[$key] ?? '';
+                }
+            }
+            $processedData[] = $row;
+        }
+
+        // Lấy ngày hiện tại
+        $currentDate = date('d-m-Y');
+        $filename = "danh_sach_phieu_dat_hen_ngay_{$currentDate}.xlsx";
+
+        // Tiêu đề lớn
+        $title = "Danh sách phiếu đặt hẹn ngày {$currentDate}";
+        // Cấu hình cho việc export
+        $config = [
+            'title' => $title,
+            'headers' => $headers,
+            'data' => $processedData,  // Sử dụng processed data đã sắp xếp
+            'filename' => $filename,
+            'headerStyle' => [
+                'font' => [
+                    'bold' => true
+                ],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => [
+                        'rgb' => 'E2E8F0'
+                    ]
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
+                    ]
+                ]
+            ],
+            'titleStyle' => [  // Cấu hình style cho tiêu đề lớn
+                'font' => [
+                    'bold' => true,
+                    'size' => 16
+                ],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                ]
+            ]
+        ];
+
+        // Thực hiện export
+        $excelService->exportWithConfig($config);
+    }
 }
 ?>
