@@ -12,6 +12,7 @@ class ReservationController extends Controller
     private $reservationDetail;
     private $book;
     private $user;
+    private $loan;
 
     public function __construct()
     {
@@ -19,6 +20,7 @@ class ReservationController extends Controller
         $this->reservationDetail = new Reservation_Detail();
         $this->book = new Book();
         $this->user = new User();
+        $this->loan = new Loan();
     }
 
     public function index()
@@ -113,7 +115,30 @@ class ReservationController extends Controller
                 if (!$this->reservation->updateStatus( $id,$status)) {
                     throw new Exception('Không thể cập nhật trạng thái phiếu đặt.');
                 }
-    
+                
+                // Nếu trạng thái là 'fulfilled', tạo phiếu mượn
+                if ($status === 'fulfilled') {
+                    $this->loan->issued_by = $reservation['user_id'];
+                    $this->loan->issued_date = date('Y-m-d');
+                    $this->loan->due_date = date('Y-m-d', strtotime('+7 days'));
+                    $this->loan->status = 'issued';
+                    $this->loan->notes = 'Created from reservation #' . $id;
+                    $this->loan->books = [];
+
+                    foreach($reservationDetails as $detail){
+                        $this->loan->books[] = [
+                            'book_id' => $detail['book_id'],
+                            'quantity' => $detail['quantity'],
+                            'status' => 'issued',
+                            'notes' => 'Created from reservation #' . $id
+                        ];
+                    }
+                    
+                    if (!$this->loan->createLoanFromReservation($this->loan->books)) {
+                        throw new Exception('Không thể tạo phiếu mượn.');
+                    }
+                }
+
                 // Đặt thông báo thành công
                 $_SESSION['message'] = 'Cập nhật trạng thái thành công.';
                 $_SESSION['message_type'] = 'success';

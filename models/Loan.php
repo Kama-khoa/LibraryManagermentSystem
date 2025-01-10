@@ -295,6 +295,52 @@ public function createLoan($books)
         }
     }
     
+    public function createLoanFromReservation($books)
+    {
+        try {
+            $this->conn->beginTransaction();
+
+            $firstBook = $books[0];
+            $query = "INSERT INTO loan (book_id, issued_by, issued_date, due_date, status, notes) 
+                     VALUES (:book_id, :issued_by, :issued_date, :due_date, :status, :notes)";
+            
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':book_id', $firstBook['book_id']);
+            $stmt->bindParam(':issued_by', $this->issued_by);
+            $stmt->bindParam(':issued_date', $this->issued_date);
+            $stmt->bindParam(':due_date', $this->due_date);
+            $stmt->bindValue(':status', $this->status);
+            $stmt->bindParam(':notes', $this->notes);
+            
+            $stmt->execute();
+            $loan_id = $this->conn->lastInsertId();
+            
+            // Thêm chi tiết cho tất cả các cuốn sách
+            foreach ($books as $book) {
+                $query = "INSERT INTO loan_detail (loan_id, book_id, quantity, status, notes) 
+                         VALUES (:loan_id, :book_id, :quantity, :status, :notes)";
+                         
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':loan_id', $loan_id);
+                $stmt->bindParam(':book_id', $book['book_id']);
+                $stmt->bindParam(':quantity', $book['quantity']);
+                $stmt->bindValue(':status', $book['status']);
+                $stmt->bindValue(':notes', $book['notes']);
+                
+                $stmt->execute();
+                
+                // Cập nhật số lượng sách có sẵn
+                $this->updateBookQuantityBorrow($book['book_id'], $book['quantity']);
+            }
+            
+            $this->conn->commit();
+            return $loan_id;
+            
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            throw $e;
+        }
+    }
 
 public function getAllandUserNameByUser($userId)
 {
