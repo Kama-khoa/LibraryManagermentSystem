@@ -101,12 +101,18 @@ public function removeCartItem($user_id, $book_id)
 
 public function getBookAvailability($book_id)
     {
-        $query = "SELECT book_id, title, available_quantity 
-                 FROM book 
-                 WHERE book_id = :book_id";
+        $query = "SELECT b.book_id, b.title, b.available_quantity , GROUP_CONCAT(DISTINCT a.name SEPARATOR ', ') AS authors
+                 FROM book b
+                LEFT JOIN 
+                book_author ba ON b.book_id = ba.book_id
+                LEFT JOIN 
+                author a ON ba.author_id = a.author_id
+                WHERE b.book_id = :book_id
+                GROUP BY b.book_id, b.title";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':book_id', $book_id);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
+
     }
 }

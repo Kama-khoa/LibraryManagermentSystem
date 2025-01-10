@@ -109,7 +109,7 @@ class Loan extends Model
     public function getBooksByLoanId($loanId)
     {
         $query = "
-        SELECT ld.book_id, b.title AS book_title, b.quantity as book_quantity, ld.status, ld.quantity as loan_detail_quantity, ld.notes
+        SELECT ld.book_id, b.title AS book_title, b.available_quantity as book_quantity, ld.status, ld.quantity as loan_detail_quantity, ld.notes
         FROM loan_detail ld
         JOIN book b ON ld.book_id = b.book_id
         WHERE ld.loan_id = :loan_id
@@ -180,19 +180,10 @@ class Loan extends Model
         return $stmt->execute();
     }
 
-    public function reserveBook($loanId, $bookId)
+    public function reserveBook( $bookId)
     {
-        $getUserQuery = "SELECT issued_by FROM loan WHERE loan_id = :loan_id";
-        $userStmt = $this->conn->prepare($getUserQuery);
-        $userStmt->bindParam(':loan_id', $loanId, PDO::PARAM_INT);
-        $userStmt->execute();
-        $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$userData) {
-            return false; 
-        }
-
-        $userId = $userData['issued_by'];
+    
+        $user_id = $_SESSION['user_id'];
 
         $query = "INSERT INTO reservation (
             book_id, 
@@ -209,7 +200,7 @@ class Loan extends Model
         $stmt = $this->conn->prepare($query);
 
         $stmt->bindParam(':book_id', $bookId, PDO::PARAM_INT);
-        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
 
         return $stmt->execute();
     }
@@ -229,13 +220,13 @@ class Loan extends Model
         $query = "";
         switch ($status) {
             case 'returned':
-                $query = "UPDATE book SET status = 'returned', quantity = quantity + $quantity WHERE book_id = :book_id";
+                $query = "UPDATE book SET status = 'returned', available_quantity = available_quantity + $quantity WHERE book_id = :book_id";
                 break;
             case 'lost':
                 $query = "UPDATE book SET status = 'lost' WHERE book_id = :book_id";
                 break;
             case 'damaged':
-                $query = "UPDATE book SET status = 'damaged', quantity = quantity + $quantity WHERE book_id = :book_id";
+                $query = "UPDATE book SET status = 'damaged', available_quantity = available_quantity + $quantity WHERE book_id = :book_id";
                 break;
         }
 
@@ -353,7 +344,7 @@ public function getAvailableBooks() {
     public function updateBookQuantity($bookId, $quantityChange)
 {
     try {
-        $query = "UPDATE book SET quantity = quantity + :quantity_change WHERE book_id = :book_id";
+        $query = "UPDATE book SET available_quantity = available_quantity + :quantity_change WHERE book_id = :book_id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':quantity_change', $quantityChange, PDO::PARAM_INT);
         $stmt->bindParam(':book_id', $bookId, PDO::PARAM_INT);
@@ -367,7 +358,7 @@ public function getAvailableBooks() {
 public function updateBookQuantityBorrow($bookId, $quantityChange)
 {
     try {
-        $query = "UPDATE book SET quantity = quantity - :quantity_change WHERE book_id = :book_id";
+        $query = "UPDATE book SET available_quantity = available_quantity - :quantity_change WHERE book_id = :book_id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':quantity_change', $quantityChange, PDO::PARAM_INT);
         $stmt->bindParam(':book_id', $bookId, PDO::PARAM_INT);
@@ -377,6 +368,53 @@ public function updateBookQuantityBorrow($bookId, $quantityChange)
         // Handle exception (log error, rethrow, etc.)
         return false;
     }
+}
+
+public function getCustomer_Borrow($user_id)
+{
+    $query = "
+        SELECT b.title, GROUP_CONCAT(DISTINCT a.name SEPARATOR ', ') AS authors, loan.created_at, loan_detail.quantity, loan_detail.status
+            FROM book b
+            JOIN 
+                book_author ba ON b.book_id = ba.book_id
+            JOIN 
+                author a ON ba.author_id = a.author_id
+            JOIN loan_detail ON b.book_id = loan_detail.book_id
+            JOIN loan ON loan.loan_id = loan_detail.loan_id
+            WHERE loan.issued_by = :issued_by
+            GROUP BY b.book_id, b.title
+    ";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':issued_by', $user_id);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function read_to_export()
+{
+    $query = "
+    SELECT 
+        l.loan_id AS MaPhieu,
+        b.title AS TenSach,
+        a.name AS TacGia,
+        ld.quantity AS SoLuongMuon,
+        u.full_name AS TenNguoiMuon
+    FROM 
+        loan l
+    JOIN 
+        loan_detail ld ON l.loan_id = ld.loan_id
+    JOIN 
+        book b ON ld.book_id = b.book_id
+    JOIN 
+        book_author ba ON b.book_id = ba.book_id
+    JOIN 
+        author a ON ba.author_id = a.author_id
+    JOIN 
+        user u ON l.issued_by = u.user_id;
+";
+$stmt = $this->conn->prepare($query);
+$stmt->execute();
+return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 }

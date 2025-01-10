@@ -32,16 +32,16 @@ class Setup {
 
 try {
     $setup = new Setup();
-    $schemaFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\migrations\schema.sql';
-    $dataFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\seeders\data.sql';
-    $updateDataFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\seeders\phuocdata.sql';
-    $updateFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\migrations\update.sql';
-    $accountFile = 'G:\XAMPP\htdocs\LibraryManagementSystem\database\seeders\adminAccount.sql';
+    $schemaFile = 'D:\xampp\htdocs\LibraryManagementSystem\database\migrations\schema.sql';
+    $dataFile = 'D:\xampp\htdocs\LibraryManagementSystem\database\seeders\data.sql';
+    $updateDataFile = 'D:\xampp\htdocs\LibraryManagementSystem\database\seeders\phuocdata.sql';
+    $updateFile = 'D:\xampp\htdocs\LibraryManagementSystem\database\migrations\update.sql';
+    $accountFile = 'D:\xampp\htdocs\LibraryManagementSystem\database\migrations\adminAccount.sql';
     $setup->runSQLFromFile($schemaFile);
-    // $setup->runSQLFromFile($updateFile);
+   // $setup->runSQLFromFile($updateFile);
     $setup->runSQLFromFile($dataFile);
-    $setup->runSQLFromFile($updateDataFile);
-    // $setup->runSQLFromFile($accountFile);
+   // $setup->runSQLFromFile($updateDataFile);
+   // $setup->runSQLFromFile($accountFile);
   
 } catch(Exception $e) {
     echo "Lỗi khởi tạo: " . $e->getMessage() . "\n";

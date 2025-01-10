@@ -1,5 +1,7 @@
 <?php
 include_once 'models/Loan.php';
+include_once 'services/ExcelExportService.php';
+use App\Services\ExcelExportService;
 
 class LoanController extends Controller
 {
@@ -132,50 +134,11 @@ class LoanController extends Controller
 
     if ($status == 'issued') {
         $stmt = $this->loan->getBooksByLoanId($loanId);
-        $insufficientBooks = [];
-        $sufficientBooks = [];
-
-        // Kiểm tra số lượng của từng sách
-        foreach ($stmt as $book) {
-            $availability = $this->loan->checkBookAvailability($book['book_id'], $book['loan_detail_quantity']);
-            if (!$availability['available']) {
-                $insufficientBooks[] = [
-                    'book_id' => $book['book_id'],
-                    'title' => $book['book_title'],
-                    'requested' => $book['loan_detail_quantity'],
-                    'remaining' => $availability['remaining']
-                ];
-            } else {
-                $sufficientBooks[] = $book;
-            }
-        }
-
-        if (!empty($insufficientBooks)) {
-            $_SESSION['insufficient_books'] = $insufficientBooks;
-            $_SESSION['loan_id'] = $loanId;
-            
-            if (count($stmt) === count($insufficientBooks)) {
-                try {
-                    $this->loan->updateStatus($loanId, 'pending');
-                    $_SESSION['message'] = 'Phiếu đã được chuyển sang trạng thái chờ do không đủ số lượng sách!';
-                    $_SESSION['message_type'] = 'warning';
-                } catch (Exception $e) {
-                    $_SESSION['message'] = 'Có lỗi xảy ra: ' . $e->getMessage();
-                    $_SESSION['message_type'] = 'danger';
-                }
-                header('Location: index.php?model=loan&action=show&id=' . $loanId);
-                exit;
-            }
-            
-            header('Location: index.php?model=loan&action=show&id=' . $loanId . '&show_modal=1');
-            exit;
-        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 foreach ($stmt as $book) {
                     $this->loan->updateBookStatusInLoanDetail($loanId, $book['book_id'], 'issued');
-                    $this->loan->updateBookQuantity($book['book_id'], -$book['loan_detail_quantity']);
                 }
                 $this->loan->updateStatus($loanId, 'issued');
                 $_SESSION['message'] = 'Phê duyệt phiếu mượn thành công!';
@@ -239,40 +202,6 @@ class LoanController extends Controller
     exit;
 }
 
-public function handle_reservation() {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        $_SESSION['message'] = 'Invalid request method';
-        $_SESSION['message_type'] = 'danger';
-        header('Location: index.php?model=loan&action=index');
-        exit;
-    }
-
-    $loanId = $_POST['loan_id'] ?? null;
-    $bookIds = $_POST['book_ids'] ?? [];
-
-    if (!$loanId || empty($bookIds)) {
-        $_SESSION['message'] = 'Invalid data provided';
-        $_SESSION['message_type'] = 'danger';
-        header('Location: index.php?model=loan&action=index');
-        exit;
-    }
-
-    try {
-        foreach ($bookIds as $bookId) {
-            $this->loan->reserveBook($loanId, $bookId);
-            $this->loan->deleteBookFromLoan($loanId, $bookId);
-        }
-
-        $_SESSION['message'] = 'Đã chuyển sách sang phiếu hẹn thành công';
-        $_SESSION['message_type'] = 'success';
-    } catch (Exception $e) {
-        $_SESSION['message'] = 'Có lỗi xảy ra: ' . $e->getMessage();
-        $_SESSION['message_type'] = 'danger';
-    }
-
-    header('Location: index.php?model=loan&action=show&id=' . $loanId);
-    exit;
-}
     public function updateBookStatus($loanId, $bookId, $status)
     {
         $result = $this->loan->updateBookStatusInLoanDetail($loanId, $bookId, $status);
@@ -282,5 +211,78 @@ public function handle_reservation() {
             echo "Cập nhật trạng thái sách thất bại!";
         }
     }
+
+    public function export()
+    {
+        // Khởi tạo service
+        $excelService = new ExcelExportService();
+
+        // Lấy danh sách users
+        $loans = $this->loan->read_to_export();
+
+        // Định nghĩa headers và key mapping
+        $headers = [
+            'MaPhieu' => 'Mã Phiếu',
+            'TenSach' => 'Tên Sách',
+            'TacGia' => 'Tác Giả',
+            'SoLuongMuon' => 'Số Lượng Mượn',
+            'TenNguoiMuon' => 'Tên Người Mượn'
+        ];
+    
+    
+
+        // Xử lý và sắp xếp lại data theo thứ tự của headers
+        $processedData = [];
+        foreach ($loans as $user) {
+            $row = [];
+            foreach (array_keys($headers) as $key) {
+                $row[$key] = $user[$key] ?? '';
+            }
+            $processedData[] = $row;
+        }
+
+        // Cấu hình cho việc export
+        $config = [
+            'headers' => $headers,
+            'data' => $processedData,  // Sử dụng processed data đã sắp xếp
+            'filename' => 'danh_sach_muon.xlsx',
+            'headerStyle' => [
+                'font' => [
+                    'bold' => true
+                ],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => [
+                        'rgb' => 'E2E8F0'
+                    ]
+                ],
+                'alignment' => [  // Căn giữa tiêu đề
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
+                    ]
+                ]
+            ],
+            'dataStyle' => [ // Style cho nội dung bảng
+                'alignment' => [  // Căn giữa nội dung
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+                'borders' => [ // Đường viền xung quanh các ô
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
+                    ]
+                ]
+            ]
+        ];
+
+        // Thực hiện export
+        $excelService->exportWithConfig($config);
+    }
+    
+
 }
 ?>

@@ -146,6 +146,7 @@
 </div>
 
 <script>
+    
 document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById("searchInput");
     const bookTable = document.getElementById("bookTable");
@@ -153,8 +154,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const appointmentTable = document.querySelector("#appointmentTable tbody");
     const addButtons = document.querySelectorAll(".add-btn");
     const hiddenInputs = document.getElementById('hiddenInputs');
+    const booksFromSession = <?php echo json_encode($_SESSION['books_reservation']); ?>;
     
-    bookTableBody.style.display = "none";
+   bookTableBody.style.display = "none";
 
     // Tìm kiếm sách
     searchInput.addEventListener("input", function () {
@@ -176,6 +178,42 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
     });
+
+    // thêm sách từ session
+    if (typeof booksFromSession !== 'undefined' && booksFromSession.length > 0) {
+    booksFromSession.forEach(book => {
+        const { book_id, title, authors, requested, remaining, expected_date } = book;
+
+        // Kiểm tra nếu sách đã tồn tại trong phiếu hẹn
+        const existingRows = Array.from(appointmentTable.children);
+        const exists = existingRows.some(row => row.children[0].textContent === book_id);
+        if (exists) return;
+
+        // Tạo hidden input cho book_id
+        const bookIdInput = document.createElement('input');
+        bookIdInput.type = 'hidden';
+        bookIdInput.name = 'book_id[]';
+        bookIdInput.value = book_id;
+        hiddenInputs.appendChild(bookIdInput);
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${book_id}</td>
+            <td>${title}</td>
+            <td>${authors}</td>
+            <td>${expected_date}</td> 
+            <td><button type="button" class="btn-danger remove-btn">Gỡ</button></td>
+        `;
+        appointmentTable.appendChild(row);
+
+        // Gỡ sách khỏi phiếu hẹn
+        row.querySelector(".remove-btn").addEventListener("click", function () {
+            const bookInput = hiddenInputs.querySelector(`input[name="book_id[]"][value="${book_id}"]`);
+            if (bookInput) bookInput.remove();
+            row.remove();
+        });
+    });
+}
 
     // Thêm sách vào phiếu hẹn
     addButtons.forEach(button => {

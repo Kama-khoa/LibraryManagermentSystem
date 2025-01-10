@@ -101,128 +101,20 @@
                 <i class="fas fa-arrow-left"></i> 
             </a>
             <?php if ($loan['status'] === 'issued' && $userData['role_id'] != 3): ?>
-                <input type="hidden" name="action_status" value="returned">
-                <button  type = "submit" class="btn btn-success">Đã trả</button>
+                <button type="submit" name="action_status" value="returned" class="btn btn-success">Đã trả</button>
             <?php endif; ?>   
             <?php if ($loan['status'] === NULL && $userData['role_id'] != 3): ?>
-                <input type="hidden" name="action_status" value="issued">
-                <button type = "submit" class="btn btn-primary" >Phê duyệt</button>
-
-                <input type="hidden" name="action_status" value="overdue">
-                <button  type = "submit" class="btn btn-danger" >Quá hạn</button>
+                <button type="submit" name="action_status" value="issued" class="btn btn-primary">Phê duyệt</button>
+            <?php endif; ?>  
+            <?php if ($loan['status'] === NULL && $userData['role_id'] != 3): ?> 
+                <button type="submit" name="action_status" value="overdue" class="btn btn-danger">Quá hạn</button>
             <?php endif; ?>
         </div>
-            </form>
+     </form>
     </div>
 </div>
-
-
-<div id="insufficientBooksModal" class="modal" tabindex="-1">
-    <div class="modal-dialog" style="max-width: 90%; width: 800px;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" style="font-weight: bold;">Sách không đủ số lượng</h2>
-                <button type="button" class="btn-close" onclick="closeModal()"></button>
-            </div>
-
-            <div class="modal-body">
-                <table class="table table-bordered text-center">
-                    <thead style="background-color: #ced4da;">
-                        <tr>
-                            <th>Tên sách</th>
-                            <th>Yêu cầu</th>
-                            <th>Còn lại</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (isset($_SESSION['insufficient_books'])): ?>
-                            <?php foreach ($_SESSION['insufficient_books'] as $book): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($book['title']) ?></td>
-                                    <td><?= $book['requested'] ?></td>
-                                    <td><?= $book['remaining'] ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="3">Không có sách nào thiếu.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-                <p class="mt-3" style="font-style:italic ;">Đề nghị: Chuyển sách sang phiếu hẹn !</p>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Hủy</button>
-                <form action="index.php?model=loan&action=handle_reservation" method="POST">
-                    <input type="hidden" name="loan_id" value="<?= $_SESSION['loan_id'] ?? '' ?>">
-                    <?php if (isset($_SESSION['insufficient_books'])): ?>
-                        <?php foreach ($_SESSION['insufficient_books'] as $book): ?>
-                            <input type="hidden" name="book_ids[]" value="<?= $book['book_id'] ?>">
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                    <button type="submit" class="btn btn-primary">Chuyển sang phiếu hẹn</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-
 
 <script>
-   document.addEventListener('DOMContentLoaded', function() {
-    <?php if (!empty($_SESSION['insufficient_books'])): ?>
-        // Kiểm tra xem có tồn tại dữ liệu không
-        console.log(<?php echo json_encode($_SESSION['insufficient_books']); ?>);
-        
-        // Mở modal khi có sách không đủ số lượng
-        var modal = document.getElementById('insufficientBooksModal');
-        modal.style.display = 'flex';
-
-        <?php
-        unset($_SESSION['insufficient_books']);
-        ?>
-    <?php endif; ?>
-});
-
-function closeModal() {
-    var modal = document.getElementById('insufficientBooksModal');
-    modal.style.display = 'none';
-}
-
-  function handleAction(action, id) {
-    if (confirm('Bạn có chắc chắn muốn thực hiện hành động này?')) {
-
-        var form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `index.php?model=loan&action=update_status&status=${action}&id=${id}`;
-
-        var elements = document.querySelectorAll('input[type="checkbox"][name^="books"], select[name^="books"]');
-        elements.forEach(function(element) {
-            if (element.type === 'checkbox') {
-                if (element.checked) {
-                    var input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = element.name;
-                    input.value = element.value;
-                    form.appendChild(input);
-                }
-            } else if (element.tagName === 'SELECT') {
-                var input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = element.name;
-                input.value = element.value;
-                form.appendChild(input);
-            }
-        });
-
-        document.body.appendChild(form);
-        form.submit();
-    }
-}
 
 
 </script>

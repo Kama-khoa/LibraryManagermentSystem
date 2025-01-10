@@ -4,9 +4,7 @@
         <div class="col-sm-1"></div>
         <div class="col-sm-10">
             <h4>
-                <!-- <i class="pull-right">
-                    <a href="index.php?model=books&action=index">Quay lại mua sắm tiếp!</a>
-                </i> -->
+            <a href="index.php?model=cart&action=cart_history" class="mb-3">Xem lịch sử mượn sách</a>
             </h4>
             <?php if (isset($_SESSION['user_id'])) { ?>
                 <form action="index.php?model=cart&action=checkout" method="POST" id="checkoutForm">
@@ -65,6 +63,74 @@
     </div>
 </div>
 
+<div id="insufficientBooksModal" class="modal" tabindex="-1">
+    <div class="modal-dialog" style="max-width: 90%; width: 800px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="font-weight: bold;">Sách không đủ số lượng</h2>
+                <button type="button" class="btn-close" onclick="closeModal()"></button>
+            </div>
+
+            <div class="modal-body">
+                <table class="table table-bordered text-center">
+                    <thead style="background-color: #ced4da;">
+                        <tr>
+                            <th>Tên sách</th>
+                            <th>Yêu cầu</th>
+                            <th>Còn lại</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (isset($_SESSION['insufficient_books'])): ?>
+                            <?php foreach ($_SESSION['insufficient_books'] as $book): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($book['title']) ?></td>
+                                    <td><?= $book['requested'] ?></td>
+                                    <td><?= $book['remaining'] ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="3">Không có sách nào thiếu.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+                <p class="mt-3" style="font-style:italic ;">Đề nghị: Chuyển sách sang phiếu hẹn !</p>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <div class="d-flex justify-content-between w-100">
+                    <button type="button" class="btn btn-danger" onclick="closeModal()">Hủy</button>
+                    <form action="index.php?model=reservation&action=member_create" method="POST">
+                        <?php if (isset($_SESSION['insufficient_books'])): ?>
+                            <?php
+                            $_SESSION['books_reservation'] = []; 
+                            foreach ($_SESSION['insufficient_books'] as $book) {
+                                $_SESSION['books_reservation'][] = [
+                                    'book_id' => $book['book_id'],
+                                    'title' => $book['title'],
+                                    'requested' => $book['requested'],
+                                    'remaining' => $book['remaining'],
+                                    'authors' => $book['authors']
+                                ];
+                            }
+                            ?>
+                            <?php foreach ($_SESSION['insufficient_books'] as $book): ?>
+                                <input type="hidden" name="book_ids[]" value="<?= $book['book_id'] ?>">
+                                <input type="hidden" name="book_titles[]" value="<?= htmlspecialchars($book['title']) ?>">
+                                <input type="hidden" name="book_quantities[]" value="<?= $book['requested'] ?>">
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                        <button type="submit" class="btn btn-primary">Chuyển sang phiếu hẹn</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('checkoutForm').addEventListener('submit', function(e) {
@@ -75,6 +141,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    <?php if (!empty($_SESSION['insufficient_books'])): ?>
+        // Kiểm tra xem có tồn tại dữ liệu không
+        console.log(<?php echo json_encode($_SESSION['insufficient_books']); ?>);
+        
+        // Mở modal khi có sách không đủ số lượng
+        var modal = document.getElementById('insufficientBooksModal');
+        modal.style.display = 'flex';
+
+        <?php
+        unset($_SESSION['insufficient_books']);
+        ?>
+    <?php endif; ?>
+});
+
+function closeModal() {
+    var modal = document.getElementById('insufficientBooksModal');
+    modal.style.display = 'none';
+}
 
 function confirmDelete() {
     return confirm("Bạn có chắc chắn muốn xóa sách này khỏi giỏ hàng?");
@@ -141,5 +227,12 @@ function confirmChoose() {
 hr {
     margin: 15px 0;
     border-color: #eee;
+}
+
+.modal-footer .d-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 </style>
